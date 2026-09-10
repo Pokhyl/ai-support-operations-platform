@@ -1,0 +1,30 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Python virtual environments
+.venv/
+venv/
+
+# Python package/build artifacts
+*.egg-info/
+dist/
+build/
+
+# Test and development caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environment variables and secrets
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
