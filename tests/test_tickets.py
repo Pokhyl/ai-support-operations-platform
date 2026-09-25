@@ -112,3 +112,49 @@ def test_get_ticket_returns_404_when_missing() -> None:
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Ticket not found"}
+
+
+def test_get_tickets_returns_list() -> None:
+    first_ticket = Ticket(
+        customer_email="first@example.com",
+        subject="First ticket",
+        body="First body",
+    )
+    first_ticket.id = uuid4()
+    first_ticket.status = "new"
+    first_ticket.created_at = datetime.now(timezone.utc)
+
+    second_ticket = Ticket(
+        customer_email="second@example.com",
+        subject="Second ticket",
+        body="Second body",
+    )
+    second_ticket.id = uuid4()
+    second_ticket.status = "new"
+    second_ticket.created_at = datetime.now(timezone.utc)
+
+    class FakeScalarResult:
+        def all(self):
+            return [first_ticket, second_ticket]
+
+    class FakeListSession:
+        def scalars(self, statement):
+            return FakeScalarResult()
+
+    def override_get_db():
+        yield FakeListSession()
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    try:
+        response = client.get("/tickets")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 2
+    assert data[0]["customer_email"] == "first@example.com"
+    assert data[1]["customer_email"] == "second@example.com"

@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from uuid import UUID
 from support_platform.db.session import get_db
@@ -56,3 +57,12 @@ def get_ticket(
         )
 
     return ticket
+@app.get("/tickets", response_model=list[TicketRead])
+def get_tickets(
+    db: Session = Depends(get_db),
+) -> list[Ticket]:
+    statement = select(Ticket).order_by(Ticket.created_at.desc())
+
+    tickets = db.scalars(statement).all()
+
+    return list(tickets)
