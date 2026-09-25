@@ -1,9 +1,10 @@
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
+from uuid import UUID
 from support_platform.db.session import get_db
 from support_platform.models.ticket import Ticket
-from support_platform.schemas.ticket import TicketCreate
+from support_platform.schemas.ticket import TicketCreate, TicketRead
 
 
 app = FastAPI(
@@ -17,8 +18,9 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/tickets", status_code=201)
+@app.post("/tickets", status_code=201, response_model=TicketRead)
 def create_ticket(
+
     payload: TicketCreate,
     db: Session = Depends(get_db),
 ) -> dict:
@@ -40,3 +42,17 @@ def create_ticket(
         "status": ticket.status,
         "created_at": ticket.created_at,
     }
+@app.get("/tickets/{ticket_id}", response_model=TicketRead)
+def get_ticket(
+    ticket_id: UUID,
+    db: Session = Depends(get_db),
+) -> Ticket:
+    ticket = db.get(Ticket, ticket_id)
+
+    if ticket is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Ticket not found",
+        )
+
+    return ticket
