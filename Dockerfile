@@ -10,6 +10,9 @@ COPY src ./src
 
 RUN python -m pip install --no-cache-dir .
 
+COPY alembic.ini ./
+COPY migrations ./migrations
+
 RUN addgroup --system app \
     && adduser --system --ingroup app app
 
